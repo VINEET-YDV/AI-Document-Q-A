@@ -19,9 +19,9 @@ load_dotenv()
 st.set_page_config(page_title="Chat with PDF (Groq)", page_icon="⚡", layout="wide")
 
 # --- Header ---
-st.title("⚡ Chat with PDF (Groq LPU)")
+st.title("⚡ Chat with PDF")
 st.markdown("""
-This app uses **Groq** (Llama 3) for ultra-fast responses and **HuggingFace** for local embeddings. 
+This app uses **Groq** (llama-3.1-8b-instant) for ultra-fast responses and **HuggingFace** for local embeddings. 
 """)
 
 # --- Sidebar: Configuration ---
@@ -141,7 +141,7 @@ if prompt := st.chat_input("Ask a question..."):
                     # Initialize Groq LLM (Llama 3 70B)
                     llm = ChatGroq(
                         groq_api_key=api_key, 
-                        model_name="llama3-70b-8192", 
+                        model_name="llama-3.1-8b-instant", 
                         temperature=0.1
                     )
                     
