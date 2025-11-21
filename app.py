@@ -3,7 +3,8 @@ import os
 import tempfile
 from langchain_groq import ChatGroq
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+# UPDATED IMPORT: Modern LangChain moves this here
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.chains.question_answering import load_qa_chain
@@ -16,9 +17,9 @@ load_dotenv()
 st.set_page_config(page_title="Chat with PDF (Groq)", page_icon="⚡", layout="wide")
 
 # --- Header ---
-st.title("⚡ Chat with PDF")
+st.title("⚡ Chat with PDF (Groq LPU)")
 st.markdown("""
-This app uses **Groq** (llama-3.1-8b-instant) for ultra-fast responses and **HuggingFace** for local embeddings. 
+This app uses **Groq** (Llama 3) for ultra-fast responses and **HuggingFace** for local embeddings. 
 No data is sent to external embedding services.
 """)
 
@@ -26,12 +27,14 @@ No data is sent to external embedding services.
 with st.sidebar:
     st.header("Configuration")
     
-    # Try to get key from environment, otherwise ask user
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        api_key = st.text_input("Enter Groq API Key", type="password")
-        if api_key:
-            os.environ["GROQ_API_KEY"] = api_key
+    # FIX: Always show the input box, pre-filled with env var if available
+    default_key = os.getenv("GROQ_API_KEY", "")
+    api_key = st.text_input("Enter Groq API Key", value=default_key, type="password")
+    
+    if api_key:
+        os.environ["GROQ_API_KEY"] = api_key
+    else:
+        st.warning("⚠️ Please enter your Groq API Key to proceed.")
     
     st.divider()
     st.header("Document Upload")
@@ -133,7 +136,7 @@ if prompt := st.chat_input("Ask a question..."):
                     # Initialize Groq LLM (Llama 3 70B)
                     llm = ChatGroq(
                         groq_api_key=api_key, 
-                        model_name="llama-3.1-8b-instant", 
+                        model_name="llama3-70b-8192", 
                         temperature=0.1
                     )
                     
