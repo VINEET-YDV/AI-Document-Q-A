@@ -1,4 +1,4 @@
-# AI-Document-Q-A      Deployed link - https://ai-document-q-a-y5tkqydssbsnfkxroxxrd9.streamlit.app/
+# Deployed link - https://ai-document-q-a-y5tkqydssbsnfkxroxxrd9.streamlit.app/
 
 # ⚡ Chat with PDF (Groq LPU Version)
 
@@ -8,7 +8,7 @@ A high-performance **RAG (Retrieval-Augmented Generation)** application that all
 
 ## 🔑 Key Features
 
-- ⚡ **Inference:** Uses **Groq API (Llama 3 70B)** for *near-instant responses*  
+- ⚡ **Inference:** Uses **Groq API ** for *near-instant responses*  
 - 🧠 **Embeddings:** Utilizes **HuggingFace (all-MiniLM-L6-v2)** locally on CPU — *no external embedding costs*  
 - 🔐 **Privacy:** Document vectors are stored **in memory (FAISS)** — *no external vector DB*  
 
