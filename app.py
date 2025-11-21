@@ -1,15 +1,17 @@
 import streamlit as st
 import os
 import tempfile
+from dotenv import load_dotenv
+
+# --- Modern LangChain Imports ---
 from langchain_groq import ChatGroq
 from langchain_community.embeddings import HuggingFaceEmbeddings
-# UPDATED IMPORT: Modern LangChain moves this here
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
+from langchain_core.prompts import PromptTemplate
+# The chains module is in the main 'langchain' package
 from langchain.chains.question_answering import load_qa_chain
-from langchain.prompts import PromptTemplate
-from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
@@ -20,21 +22,20 @@ st.set_page_config(page_title="Chat with PDF (Groq)", page_icon="⚡", layout="w
 st.title("⚡ Chat with PDF (Groq LPU)")
 st.markdown("""
 This app uses **Groq** (Llama 3) for ultra-fast responses and **HuggingFace** for local embeddings. 
-No data is sent to external embedding services.
 """)
 
 # --- Sidebar: Configuration ---
 with st.sidebar:
     st.header("Configuration")
     
-    # FIX: Always show the input box, pre-filled with env var if available
+    # Always show the input box
     default_key = os.getenv("GROQ_API_KEY", "")
     api_key = st.text_input("Enter Groq API Key", value=default_key, type="password")
     
     if api_key:
         os.environ["GROQ_API_KEY"] = api_key
     else:
-        st.warning("⚠️ Please enter your Groq API Key to proceed.")
+        st.warning("⚠️ Please enter your Groq API Key.")
     
     st.divider()
     st.header("Document Upload")
@@ -43,7 +44,12 @@ with st.sidebar:
     process_button = st.button("Process PDF")
 
 # --- Logic: PDF Processing ---
-def get_vector_store(uploaded_file):
+@st.cache_resource
+def get_embedding_model():
+    # Cache the embedding model so it doesn't reload on every run
+    return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+def process_pdf(uploaded_file):
     try:
         # Create a temporary file to save the uploaded bytes
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -61,9 +67,8 @@ def get_vector_store(uploaded_file):
         )
         text_chunks = text_splitter.split_documents(documents)
 
-        # Generate Embeddings locally using HuggingFace (all-MiniLM-L6-v2)
-        # This downloads the model once (~80MB) and runs on CPU
-        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        # Get Embedding Model
+        embeddings = get_embedding_model()
         
         # Create Vector Store
         vector_store = FAISS.from_documents(text_chunks, embeddings)
@@ -87,8 +92,8 @@ if process_button and uploaded_file:
     if not api_key:
         st.sidebar.error("Please provide a Groq API Key to proceed.")
     else:
-        with st.spinner("Processing PDF... (Downloading embedding model if first run)"):
-            st.session_state.vector_store = get_vector_store(uploaded_file)
+        with st.spinner("Processing PDF... (This may take a moment)"):
+            st.session_state.vector_store = process_pdf(uploaded_file)
             if st.session_state.vector_store:
                 st.success("PDF Processed! Ready to chat.")
 
